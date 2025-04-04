@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Neuen Termin erstellen</title>
+    <link rel="stylesheet" th:href="@{/css/termin-erstellen.css}" />
+</head>
+<body>
+<div class="container">
+    <h1>Neuen Termin erstellen</h1>
+
+    <form id="terminForm">
+        <label for="title">Titel:</label>
+        <input type="text" id="title" name="title" required>
+
+        <label for="description">Beschreibung:</label>
+        <textarea id="description" name="description"></textarea>
+
+        <label for="startTime">Startzeit:</label>
+        <input type="datetime-local" id="startTime" name="startTime" required>
+
+        <label for="endTime">Endzeit:</label>
+        <input type="datetime-local" id="endTime" name="endTime" required>
+
+        <h2>Benutzer auswählen:</h2>
+        <table id="benutzerTabelle" class="user-table">
+            <thead>
+            <tr>
+                <th>Auswählen</th>
+                <th>Benutzername</th>
+                <th>E-Mail</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="benutzer : ${benutzerListe}">
+                <td>
+                    <input type="checkbox" class="user-checkbox" th:value="${benutzer.username}">
+                </td>
+                <td th:text="${benutzer.username}"></td>
+                <td th:text="${benutzer.email}"></td>
+            </tr>
+            </tbody>
+        </table>
+
+        <input type="hidden" id="eingeladeneBenutzer" name="eingeladeneBenutzer">
+
+
+        <button type="button" id="terminErstellenBtn" class="btn">Termin erstellen</button>
+
+        <a th:href="@{/dashboard}" class="back-btn">⬅ Zurück zum Dashboard</a>
+    </form>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        console.log("✅ Seite geladen. Event-Listener wird gesetzt.");
+
+        document.getElementById("terminErstellenBtn").addEventListener("click", async function () {
+            console.log("🛠 Termin-Erstellen-Button wurde geklickt!");
+
+            let title = document.getElementById("title").value;
+            let description = document.getElementById("description").value;
+            let startTime = document.getElementById("startTime").value;
+            let endTime = document.getElementById("endTime").value;
+
+
+            let eingeladeneBenutzer = Array.from(document.querySelectorAll(".user-checkbox:checked"))
+                .map(cb => cb.value);
+
+            console.log("📨 Eingeladene Benutzer:", eingeladeneBenutzer);
+
+            // Prüfen, ob alle Felder ausgefüllt sind
+            if (!title || !startTime || !endTime) {
+                alert("Bitte füllen Sie alle erforderlichen Felder aus!");
+                return;
+            }
+
+            let csrfToken = document.getElementById("csrfToken") ? document.getElementById("csrfToken").value : "";
+
+
+            let terminData = {
+                title: title,
+                description: description,
+                startTime: startTime,
+                endTime: endTime,
+                eingeladeneBenutzer: eingeladeneBenutzer.length > 0 ? eingeladeneBenutzer : [] // Sicherstellen, dass es ein Array ist
+            };
+
+            try {
+                let response = await fetch("/termine/neu", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRF-TOKEN": csrfToken
+                    },
+                    body: JSON.stringify(terminData)
+                });
+
+                if (!response.ok) {
+                    let errorText = await response.text();
+                    throw new Error(`Fehler beim Erstellen des Termins: ${errorText}`);
+                }
+
+                console.log("✅ Termin erfolgreich erstellt!");
+                alert("Termin erfolgreich erstellt!");
+                window.location.href = "/dashboard";
+
+            } catch (error) {
+                console.error("❌ Fehler:", error.message);
+                alert("Fehler: " + error.message);
+            }
+        });
+    });
+</script>
+
+</body>
+</html>

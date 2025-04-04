@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" th:href="@{/css/admin_dashboard.css}" />
+</head>
+<body>
+
+<div class="dashboard">
+    <h1>Willkommen, <span th:text="${username}">Admin</span>!</h1>
+
+    <div class="menu">
+        <a th:href="@{/termine/meine-termine}" class="btn">📅 Meine Termine</a>
+        <a th:href="@{/termine/neu}" class="btn">➕ Neuen Termin erstellen</a>
+        <a th:href="@{/einladungen}" class="btn">📩 Meine Einladungen</a>
+        <a href="/admin/alle-benutzer" class="btn">👥 Alle Benutzer</a>
+        <a th:href="@{/admin/logs}" class="btn">📜 System Logs</a>
+    </div>
+
+
+    <nav>
+        <ul>
+            <li th:each="termin : ${termine}">
+                <span th:text="${termin.title}">Beispiel-Termin</span>
+                <span th:text="${termin.startTime}"></span>
+                <a th:href="@{/termine/bearbeiten/{id}(id=${termin.id})}">Bearbeiten</a> |
+                <a href="#" th:attr="data-id=${termin.id}" class="delete-btn">Löschen</a>
+            </li>
+        </ul>
+    </nav>
+
+    <form th:action="@{/logout}" method="post">
+        <button type="submit" class="logout-btn">🚪 Abmelden</button>
+    </form>
+</div>
+
+<script src="/js/meine-termine.js" defer></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll(".delete-btn").forEach(button => {
+            button.addEventListener("click", function (event) {
+                event.preventDefault();
+                const terminId = this.getAttribute("data-id");
+
+                if (!confirm("Möchten Sie diesen Termin wirklich löschen?")) return;
+
+                fetch(`/api/termine/loeschen/${terminId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.text().then(text => {
+                                throw new Error(text);
+                            });
+                        }
+                        alert("Termin erfolgreich gelöscht!");
+                        location.reload();
+                    })
+                    .catch(error => {
+                        alert("Fehler beim Löschen: " + error.message);
+                    });
+            });
+        });
+    });
+</script>
+
+</body>
+</html>

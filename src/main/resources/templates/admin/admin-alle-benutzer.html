@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Alle Benutzer</title>
+    <link rel="stylesheet" th:href="@{/css/allUsers.css}" />
+</head>
+<body>
+<div class="container">
+    <h1>👥 Alle Benutzer</h1>
+
+    <table>
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Benutzername</th>
+            <th>Rolle</th>
+            <th>Aktion</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="user : ${users}">
+            <td th:text="${user.id}"></td>
+            <td th:text="${user.username}"></td>
+            <td th:text="${user.role}"></td>
+            <td>
+                <form th:action="@{/admin/benutzer/loeschen/{id}(id=${user.id})}" method="post"
+                      th:onsubmit="return confirm('Bist du sicher, dass du diesen Benutzer löschen willst?')">
+                    <button type="submit">🗑️ Löschen</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <a href="/dashboard" class="btn">🔙 Zurück zum Dashboard</a>
+</div>
+</body>
+</html>

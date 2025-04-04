@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Termin bearbeiten</title>
+    <link rel="stylesheet" th:href="@{/css/termin-bearbeiten.css}"/>
+</head>
+<body>
+
+<div class="container">
+    <h1>✏️ Termin bearbeiten</h1>
+    <form id="bearbeitenForm">
+        <input type="hidden" id="terminId" th:value="${termin.id}">
+
+        <label for="title">Titel:</label>
+        <input type="text" id="title" th:value="${termin.title}" required>
+
+        <label for="description">Beschreibung:</label>
+        <textarea id="description" th:text="${termin.description}"></textarea>
+
+        <label for="startTime">Startzeit:</label>
+        <input type="datetime-local" id="startTime" th:value="${termin.startTime}" required>
+
+        <label for="endTime">Endzeit:</label>
+        <input type="datetime-local" id="endTime" th:value="${termin.endTime}" required>
+
+        <button type="button" onclick="terminSpeichern()">💾 Speichern</button>
+        <a href="/dashboard" class="cancel-btn">⬅ Abbrechen</a>
+    </form>
+</div>
+
+<script>
+    function terminSpeichern() {
+        const id = document.getElementById("terminId").value;
+
+        const startTime = new Date(document.getElementById("startTime").value).toISOString().slice(0, 19);
+        const endTime = new Date(document.getElementById("endTime").value).toISOString().slice(0, 19);
+
+        console.log("🚀 Gesendetes startTime:", startTime); // Debugging
+        console.log("🚀 Gesendetes endTime:", endTime); // Debugging
+
+        const terminDaten = {
+            title: document.getElementById("title").value,
+            description: document.getElementById("description").value,
+            startTime: startTime,
+            endTime: endTime
+        };
+
+        fetch(`/api/termine/bearbeiten/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(terminDaten)
+        })
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => { throw new Error(text); });
+                }
+                return response.text();
+            })
+            .then(message => {
+                alert("Termin erfolgreich aktualisiert!");
+                window.location.href = "/dashboard";
+            })
+            .catch(error => {
+                alert("Fehler beim Speichern: " + error.message);
+            });
+    }
+</script>
+
+</body>
+</html>

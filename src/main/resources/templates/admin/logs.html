@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>System Logs</title>
+
+    <link rel="stylesheet" th:href="@{/css/logs.css}" />
+</head>
+<body>
+<div class="table-container">
+    <table border="1">
+        <thead>
+        <tr>
+            <th>Timestamp</th>
+            <th>Admin</th>
+            <th>Aktion</th>
+            <th>Details</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="log : ${logs}">
+            <td th:text="${log.timestamp}"></td>
+            <td th:text="${log.adminUsername}"></td>
+            <td th:text="${log.action}"></td>
+            <td th:text="${log.details}"></td>
+        </tr>
+        </tbody>
+    </table>
+
+</div>
+
+<a th:href="@{/dashboard}" class="back-btn">⬅ Zurück zum Dashboard</a>
+</body>
+</html>

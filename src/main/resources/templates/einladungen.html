@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Meine Einladungen</title>
+    <link rel="stylesheet" th:href="@{/css/einladungen.css}" />
+    <script src="/js/einladungen.js"></script>
+</head>
+<body>
+<div class="dashboard">
+    <h2>📩 Meine Einladungen</h2>
+
+    <table>
+        <thead>
+        <tr>
+            <th>Absender</th>
+            <th>Beginnzeit</th>
+            <th>Endezeit</th>
+            <th>Titel</th>
+            <th>Beschreibung</th>
+            <th>Aktionen</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="einladung : ${einladungen}">
+            <td th:text="${einladung.termin.organizer.username} ?: 'Unbekannt'"></td>
+            <td th:text="${einladung.termin.startTime != null ? #temporals.format(einladung.termin.startTime, 'dd.MM.yyyy HH:mm') : 'N/A'}"></td>
+            <td th:text="${einladung.termin.endTime != null ? #temporals.format(einladung.termin.endTime, 'dd.MM.yyyy HH:mm') : 'N/A'}"></td>
+            <td th:text="${einladung.termin.title}"></td>
+            <td th:text="${einladung.termin.description}"></td>
+            <td>
+                <form th:action="@{/einladungen/akzeptieren/{id}(id=${einladung.id})}" method="post">
+                    <button type="submit">✅ Akzeptieren</button>
+                </form>
+                <form th:action="@{/einladungen/ablehnen/{id}(id=${einladung.id})}" method="post">
+                    <button type="submit">❌ Ablehnen</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+
+    <a th:href="@{/dashboard}" class="back-btn">⬅ Zurück zum Dashboard</a>
+</div>
+</body>
+</html>

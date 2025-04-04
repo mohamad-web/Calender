@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Meine Termine</title>
+    <link rel="stylesheet" th:href="@{/css/meine-termin.css}"
+</head>
+<body>
+
+<div class="container">
+    <h1>📅 Meine Termine</h1>
+
+    <p id="anzahlTermine"></p>
+
+    <table>
+        <thead>
+        <tr>
+            <th>Titel</th>
+            <th>Beschreibung</th>
+            <th>Startzeit</th>
+            <th>Endzeit</th>
+            <th>Aktionen</th>
+        </tr>
+        </thead>
+        <tbody id="meineTermineListe">
+        <tr th:each="termin : ${termine}">
+            <td th:text="${termin.title}"></td>
+            <td th:text="${termin.description}"></td>
+            <td th:text="${#temporals.format(termin.startTime, 'dd.MM.yyyy HH:mm')}"></td>
+            <td th:text="${#temporals.format(termin.endTime, 'dd.MM.yyyy HH:mm')}"></td>
+            <td>
+                <button type="button"
+                        th:attr="onclick=|showEinladungen('${termin.id}')|">
+                    👥 Eingeladene Personen
+                </button>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+
+    <div id="einladungenModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>📋 Eingeladene Personen</h2>
+            <table>
+                <thead>
+                <tr>
+                    <th>Benutzername</th>
+                    <th>Status</th>
+                </tr>
+                </thead>
+                <tbody id="einladungenListe"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div th:if="${termine.empty}">
+        <p>Keine Termine gefunden.</p>
+    </div>
+    <div class="back-btn-container">
+        <a th:href="@{/dashboard}" class="back-btn">⬅ Zurück zum Dashboard</a>
+    </div>
+
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", async function() {
+        try {
+            let response = await fetch("/api/termine/meine");
+            let termine = await response.json();
+            console.log("📅 Geladene Termine:", termine);
+
+            let termineListe = document.getElementById("meineTermineListe");
+            let anzahlTermineText = document.getElementById("anzahlTermine");
+
+            termineListe.innerHTML = "";
+
+            if (termine.length === 0) {
+                anzahlTermineText.innerHTML = "<p>Keine Termine gefunden.</p>";
+                return;
+            }
+
+            anzahlTermineText.innerHTML = termine.length + " Termine gefunden";
+
+            termine.forEach(termin => {
+                let row = document.createElement("tr");
+
+                let titleCell = document.createElement("td");
+                titleCell.innerText = termin.title;
+                row.appendChild(titleCell);
+
+                let descCell = document.createElement("td");
+                descCell.innerText = termin.description;
+                row.appendChild(descCell);
+
+                let startCell = document.createElement("td");
+                startCell.innerText = new Date(termin.startTime).toLocaleString();
+                row.appendChild(startCell);
+
+                let endCell = document.createElement("td");
+                endCell.innerText = new Date(termin.endTime).toLocaleString();
+                row.appendChild(endCell);
+
+
+                let actionCell = document.createElement("td");
+                let button = document.createElement("button");
+                button.innerText = "👥 Eingeladene Personen";
+                button.onclick = function () { showEinladungen(termin.id); };
+                actionCell.appendChild(button);
+                row.appendChild(actionCell);
+
+                termineListe.appendChild(row);
+            });
+        } catch (error) {
+            console.error("🚨 Fehler beim Laden der Termine:", error);
+        }
+    });
+
+    async function showEinladungen(terminId) {
+        console.log("📨 Button wurde geklickt für Termin ID:", terminId);
+
+        try {
+            let response = await fetch(`/api/termine/${terminId}/einladungen`);
+            console.log("🔄 API-Request gesendet...");
+
+            if (!response.ok) {
+                throw new Error("❌ Fehler beim Abrufen der Einladungen.");
+            }
+
+            let einladungen = await response.json();
+            console.log("📩 Erhaltene Einladungen:", einladungen);
+
+            let einladungenListe = document.getElementById("einladungenListe");
+            einladungenListe.innerHTML = ""; // Vorherige Inhalte leeren
+
+            if (einladungen.length === 0) {
+                einladungenListe.innerHTML = "<tr><td colspan='2'>Keine Einladungen gefunden.</td></tr>";
+            } else {
+                einladungen.forEach(einladung => {
+                    let row = document.createElement("tr");
+                    row.innerHTML = `
+                    <td>${einladung.empfaengerName}</td>
+                    <td>${einladung.status}</td>
+                `;
+                    einladungenListe.appendChild(row);
+                });
+            }
+
+            // Modal-Fenster öffnen
+            document.getElementById("einladungenModal").style.display = "block";
+            console.log("✅ Modal geöffnet!");
+
+        } catch (error) {
+            console.error("❌ Fehler:", error);
+            alert("Fehler beim Laden der Einladungen.");
+        }
+    }
+
+
+    function closeModal() {
+        document.getElementById("einladungenModal").style.display = "none";
+    }
+</script>
+
+
+</body>
+</html>
